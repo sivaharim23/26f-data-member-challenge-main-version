@@ -91,7 +91,7 @@ df["age_numeric"] = df["Age"].map(AGE_MAP)  # unmapped values (Prefer not to say
 # explicit "Unknown" category rather than the column mode. This lets the
 # model treat "didn't answer" as its own signal instead of pretending it's
 # more common than it is.
-CATEGORICAL_UNKNOWN_FILL = ["EdLevel", "OrgSize", "ICorPM", "RemoteWork", "Industry"]
+CATEGORICAL_UNKNOWN_FILL = ["EdLevel", "OrgSize", "ICorPM", "RemoteWork", "Industry"] # goes through the data in these columns and replaces any missing values with Unknown
 for col in CATEGORICAL_UNKNOWN_FILL:
     df[col] = df[col].fillna("Unknown")
 
@@ -131,6 +131,8 @@ df["devtype_grouped"] = df["DevType"].where(~df["DevType"].isin(rare_devtypes), 
 # seniority/pay) and (b) a few individual language flags for languages that
 # show up often and plausibly carry their own salary signal (e.g. Python/Go/
 # Rust vs. more common general-purpose languages).
+# Counts the number of coding languages surveyed. And then 8 seperate flags for individual coding languages like python and java.
+
 def split_multiselect(series):
     return series.fillna("").apply(lambda s: [x for x in s.split(";") if x])
 
@@ -173,6 +175,11 @@ y_dollars = df["annual_salary_usd"]
 
 
 #turns raw columns into model ready numbers
+#train_test_split takes your features (X) and two versions of your target (y_log = log-transformed salary,
+#y_dollars = raw dollar salary) and randomly splits every row into two groups: 80% for training, 20% held out for testing (test_size=0.2).
+# Because we're passing in three things at once (X, y_log, y_dollars), it splits all three the same way 
+# log-salary, and dollar-salary all end up in the same group together
+# random_state=RANDOM_STATE just makes the split reproducible                                                                        
 X_train, X_test, y_train_log, y_test_log, y_train_dollars, y_test_dollars = train_test_split(
     X, y_log, y_dollars, test_size=0.2, random_state=RANDOM_STATE
 )
